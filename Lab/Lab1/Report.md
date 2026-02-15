@@ -2,12 +2,14 @@
 
 ## 1. Создание виртуальной машины
 
-Создал виртуальную машину Ubuntu 22.04 в VMware Workstation Player с именем `fateyev`, пользователем `fateyev`, hostname `fateyev`.
+Создал виртуальную машину Ubuntu 22.04 в VMware Workstation Player. Указал имя ВМ `fateyev`, пользователя `fateyev`, hostname `fateyev`. Выделил 4 ГБ RAM, 20 ГБ диск.
 
 ![Настройки](screenshots/01-vm-settings.png)
 ![Приглашение fateyev@fateyev:~$](screenshots/02-vm-console.png)
 
 ## 2. Информация о системе
+
+Собрал системную информацию в файл `01-system.txt`: `uname -a` (версия ядра), `cat /etc/os-release` (Ubuntu), `lscpu` (процессор), `free -h` (память), `df -h` (диски).
 
 ```
 mkdir -p ~/report
@@ -31,6 +33,8 @@ df -h >> ~/report/01-system.txt
 
 ## 3. Сеть: IP-адрес и открытые порты
 
+Собрал сетевую информацию в `02-network.txt`: `ip addr show` (IP-адреса интерфейсов), `sudo ss -tlnp` (прослушиваемые порты с PID процессов).
+
 ```
 echo '=== IP-АДРЕСА ===' > ~/report/02-network.txt
 ip addr show >> ~/report/02-network.txt
@@ -44,6 +48,8 @@ sudo ss -tlnp >> ~/report/02-network.txt
 
 ## 4. Сервис SSH
 
+Проверил SSH-сервер: `sudo systemctl status ssh` (статус сервиса), `sudo ss -tlnp | grep ssh` (порт 22). SSH активен.
+
 ```
 echo '=== СТАТУС SSH ===' > ~/report/03-ssh.txt
 sudo systemctl status ssh >> ~/report/03-ssh.txt 2>&1
@@ -56,6 +62,8 @@ sudo ss -tlnp | grep ssh >> ~/report/03-ssh.txt
 ![Порт ssh](screenshots/07-ssh-port.png)
 
 ## 5. Пользователи и группы
+
+Собрал данные о пользователях в `04-users.txt`: `whoami`, `id` (текущий), `grep '/bin/bash' /etc/passwd` (с bash).
 
 ```
 echo '=== ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ ===' > ~/report/04-users.txt
@@ -72,6 +80,8 @@ echo '=== ГРУППЫ ===' >> ~/report/04-users.txt
 groups >> ~/report/04-users.txt
 ```
 
+Создал пользователя boardy: `sudo adduser boardy`, `sudo usermod -aG sudo boardy`.
+
 ```
 sudo adduser boardy
 sudo usermod -aG sudo boardy
@@ -83,6 +93,8 @@ id boardy
 ![ID-нового пользователя](screenshots/10-user-check.png)
 
 ## 6. Дерево каталогов
+
+Изучил файловую систему в `05-tree.txt`: `ls -la /` (корень), `ls -la /home` (домашние папки), `ls -la ~` (мой каталог).
 
 ```
 echo '=== КОРЕНЬ ===' > ~/report/05-tree.txt
@@ -99,6 +111,8 @@ ls -la ~ >> ~/report/05-tree.txt
 ![home дерево](screenshots/12-home-tree.png)
 
 ## 7. Права доступа
+
+Проверил права каталогов `ls -ld / /etc /var /tmp /home`. Создал `testfile.txt`, применил `chmod 755` (rwx|r-x|r-x), затем `chmod 600` (rw-|---|---).
 
 ```
 echo '=== ПРАВА НА КАТАЛОГИ ===' > ~/report/06-permissions.txt
@@ -118,6 +132,8 @@ ls -l ~/report/testfile.txt >> ~/report/06-permissions.txt
 
 ## 8. Установленные пакеты и сервисы
 
+Проверил ключевые пакеты `dpkg -l | grep 'openssh|python|git|curl|vim|nano'`, общее количество `dpkg -l | grep '^ii' | wc -l`, сервисы `systemctl list-units --type=service --state=running`.
+
 ```
 echo '=== КЛЮЧЕВЫЕ ПАКЕТЫ ===' > ~/report/07-packages.txt
 dpkg -l | grep -E 'openssh|python|git|curl|vim|nano' >> ~/report/07-packages.txt
@@ -133,6 +149,8 @@ systemctl list-units --type=service --state=running >> ~/report/07-packages.txt
 ![Запущенные сервисы](screenshots/16-services.png)
 
 ## 9. Конвейер и перенаправление
+
+Анализ через конвейеры: `ps aux | sort | head` (топ по памяти), `ps aux | awk | sort | uniq -c` (процессы по пользователям), `du /var | sort | head` (большие файлы).
 
 ```
 echo '=== ТОП-10 ПРОЦЕССОВ ПО ПАМЯТИ ===' > ~/report/08-pipes.txt
@@ -150,6 +168,8 @@ sudo du -ah /var 2>/dev/null | sort -rh | head -10 >> ~/report/08-pipes.txt
 ![Топ-10 больших файлов в /var](screenshots/19-big-files.png)
 
 ## 10. Итоговый файл
+
+Объединил отчёты `cat ~/report/0*.txt > FULL-REPORT.txt`. Проверил файлы `ls -lh ~/report/` — создано 8 файлов + итоговый отчёт.
 
 ```
 cat ~/report/0*.txt > ~/report/FULL-REPORT.txt

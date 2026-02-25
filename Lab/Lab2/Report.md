@@ -53,3 +53,11 @@ ssh -T git@github.com
 Склонировал репозиторий, создал структуру, запушил.
 
 ![09-github-repo.png](screenshots/09-github-repo.png)
+
+## 8. Создание ветки lab2 и Pull Request
+На GitHub создал Pull Request:
+1. Перешёл в репозиторий → Pull requests → New pull request
+2. Выбрал `base: master ← compare: lab2`
+3. Нажал Create pull request
+
+![Созданный Pull Request на GitHub](screenshots/10-pull-request.png)

@@ -1,5 +1,4 @@
 server {
-    listen 80;
     server_name api.kilqa.ai-info.ru;
  
     root /var/www/boardy-api;
@@ -11,4 +10,23 @@ server {
     location / {
         try_files $uri $uri/ =404;
     }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/api.kilqa.ai-info.ru/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/api.kilqa.ai-info.ru/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+server {
+    if ($host = api.kilqa.ai-info.ru) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    server_name api.kilqa.ai-info.ru;
+    return 404; # managed by Certbot
+
+
 }

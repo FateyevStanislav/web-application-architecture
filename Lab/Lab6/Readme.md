@@ -86,3 +86,4 @@ fcgiwrap → Nginx → TLS → Браузер ("Спасибо!")
 5. **fcgiwrap** — адаптер для Nginx (не поддерживает CGI нативно). Apache запускает CGI напрямую через mod_cgi.
 
 ### Pull Request
+![09-pull-request.png](screenshots/09-pull-request.png)

@@ -73,7 +73,7 @@ SQL‑инъекция возникает, когда пользовательс
 
 ### Задание 14. aiomysql
 ![17-api-messages.png](screenshots/17-api-messages.png)  
-![18-api-users.png](screenshots/18-api-users.png)
+![18-api-users.png](screenshots/18-api-users.png18-api-users.png)
 
 **Ответ:**  
 `aiomysql` используется, потому что это асинхронный драйвер для MySQL, совместимый с Python‑`asyncio` и FastAPI; он не блокирует event loop при ожидании ответа от БД, позволяя обрабатывать другие запросы параллельно.  

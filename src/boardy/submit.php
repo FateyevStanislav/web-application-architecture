@@ -1,42 +1,63 @@
 <?php
-require_once 'db.php';
- 
-$name = $_POST['name'] ?? '';
-$message = $_POST['message'] ?? '';
- 
-if ($name && $message) {
-    // Ищем или создаём пользователя
-    $stmt = $pdo->prepare('SELECT id FROM users WHERE name = ?');
-    $stmt->execute([$name]);
-    $user = $stmt->fetch();
- 
-    if (!$user) {
-        $stmt = $pdo->prepare(
-            'INSERT INTO users (name, email, password) VALUES (?, ?, ?)'
-        );
-        $stmt->execute([$name, $name.'@boardy.local', 'temp']);
-        $user_id = $pdo->lastInsertId();
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+session_start();
+
+if (empty($_SESSION['user_id'])) {
+    header('Location: /login.php');
+    exit;
+}
+
+require_once __DIR__ . '/db.php';
+
+$success = '';
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = trim($_POST['title'] ?? '');
+    $body  = trim($_POST['body'] ?? '');
+
+    if (empty($title)) {
+        $error = 'Заголовок не может быть пустым';
+    } elseif (empty($body)) {
+        $error = 'Текст поста не может быть пустым';
     } else {
-        $user_id = $user['id'];
+        $stmt = $pdo->prepare('INSERT INTO posts (title, body, author_id) VALUES (?, ?, ?)');
+        $stmt->execute([$title, $body, $_SESSION['user_id']]);
+        $success = 'Пост успешно добавлен';
+        $_POST['title'] = '';
+        $_POST['body']  = '';
     }
- 
-    // Создаём пост (prepared statement!)
-    $stmt = $pdo->prepare(
-        'INSERT INTO posts (title, body, author_id) VALUES (?, ?, ?)'
-    );
-    $stmt->execute(['Сообщение', $message, $user_id]);
 }
 ?>
-<!DOCTYPE html>
-<html lang="ru">
-<head><meta charset="utf-8"><title>Boardy</title>
-<link rel="stylesheet" href="/css/style.css"></head>
-<body>
-<header><h1><a href="/">Boardy</a></h1></header>
+<?php include __DIR__ . '/partials/head.php'; ?>
+<?php include __DIR__ . '/partials/nav.php'; ?>
 <main>
-  <h2>Спасибо, <?= htmlspecialchars($name) ?>!</h2>
-  <p><a href="/">На главную</a> |
-     <a href="/messages.php">Все сообщения</a></p>
+    <div class="card">
+        <h1>Добавить пост</h1>
+        <?php if ($error): ?>
+            <div class="error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+        <?php if ($success): ?>
+            <div class="success"><?= htmlspecialchars($success) ?></div>
+        <?php endif; ?>
+        <form method="POST" action="">
+            <div class="form-group">
+                <label for="title">Заголовок</label>
+                <input type="text" id="title" name="title" required
+                       value="<?= htmlspecialchars($_POST['title'] ?? '') ?>">
+            </div>
+            <div class="form-group">
+                <label for="body">Текст поста</label>
+                <textarea id="body" name="body" required><?= htmlspecialchars($_POST['body'] ?? '') ?></textarea>
+            </div>
+            <button type="submit">Опубликовать</button>
+        </form>
+    </div>
 </main>
-</body></html>
-
+<?php include __DIR__ . '/partials/foot.php'; ?>

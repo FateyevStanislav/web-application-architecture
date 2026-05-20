@@ -5,21 +5,55 @@
 @section('content')
     <h1 class="mb-4">Лента постов</h1>
 
-    @forelse ($posts as $post)
-        <article class="card mb-3">
-            <div class="card-body">
-                <h2 class="h4">
-                    <a href="{{ route('posts.show', $post) }}" class="text-decoration-none">{{ $post->title }}</a>
-                </h2>
-                <p class="mb-2">{{ \Illuminate\Support\Str::limit($post->body, 200) }}</p>
-                <small class="text-muted">
-                    {{ $post->author->name }} · {{ $post->created_at->format('d.m.Y H:i') }}
-                </small>
-            </div>
-        </article>
-    @empty
-        <p>Постов пока нет.</p>
-    @endforelse
+    <div id="posts-feed">
+        @foreach($posts as $post)
+            <article class="card">
+                <h3>{{ $post->title }}</h3>
+                <p>{{ $post->body }}</p>
+                <small>{{ $post->author->name }}</small>
+            </article>
+        @endforeach
+    </div>
 
     {{ $posts->links() }}
+@endsection
+
+@section('scripts')
+<script>
+@if(app()->environment('production'))
+const wsUrl = 'wss://api.{{ config("app.fastapi_domain") }}/ws'
+@else
+const wsUrl = 'ws://localhost:8000/ws'
+@endif
+
+function connect() {
+    const ws = new WebSocket(wsUrl)
+    ws.onopen = () => console.log('WS connected')
+    ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data)
+        if (msg.type === 'new_post') prependPost(msg.post)
+    }
+    ws.onclose = () => setTimeout(connect, 3000)
+}
+
+function prependPost(post) {
+    const feed = document.getElementById('posts-feed')
+    if (!feed) return
+    const el = document.createElement('article')
+    el.className = 'card'
+    el.innerHTML = `
+        <h3>${escapeHtml(post.title)}</h3>
+        <p>${escapeHtml(post.body)}</p>
+        <small>${escapeHtml(post.author)}</small>`
+    feed.prepend(el)
+}
+
+function escapeHtml(str) {
+    const d = document.createElement('div')
+    d.textContent = str
+    return d.innerHTML
+}
+
+connect()
+</script>
 @endsection

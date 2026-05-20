@@ -123,4 +123,5 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'fastapi_domain' => env('FASTAPI_DOMAIN', 'localhost:8000'),
 ];

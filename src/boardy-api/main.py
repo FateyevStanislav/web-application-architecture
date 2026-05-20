@@ -1,16 +1,17 @@
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from datetime import datetime
 import aiomysql
 from routers import comments
- 
-app = FastAPI(title='Boardy API', version='0.2.0')
+from routers import ws
+
+app = FastAPI(title='Boardy API', version='0.3.0')
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://kilqa.ai-info.ru",          
-        "https://api.kilqa.ai-info.ru",      
+        "https://kilqa.ai-info.ru",
+        "https://api.kilqa.ai-info.ru",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -18,7 +19,14 @@ app.add_middleware(
 )
 
 app.include_router(comments.router)
- 
+app.include_router(ws.router)
+
+@app.post('/internal/broadcast')
+async def internal_broadcast(request: Request):
+    data = await request.json()
+    await ws.manager.broadcast({'type': 'new_post', 'post': data})
+    return {'ok': True}
+
 DB_CONFIG = {
     'host': '127.0.0.1',
     'port': 3306,
@@ -27,14 +35,14 @@ DB_CONFIG = {
     'db': 'boardy',
     'charset': 'utf8mb4',
 }
- 
+
 async def get_db():
     return await aiomysql.connect(**DB_CONFIG)
- 
+
 @app.get('/api/status')
 async def status():
     return {'status': 'ok', 'time': str(datetime.now())}
- 
+
 @app.get('/api/messages')
 async def get_messages():
     conn = await get_db()
@@ -50,7 +58,7 @@ async def get_messages():
     for m in messages:
         m['created_at'] = str(m['created_at'])
     return {'messages': messages, 'count': len(messages)}
- 
+
 @app.get('/api/users')
 async def get_users():
     conn = await get_db()

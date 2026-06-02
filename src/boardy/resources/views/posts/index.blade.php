@@ -16,10 +16,16 @@
 
     <div id="posts-feed" class="space-y-4">
         @forelse ($posts as $post)
-            <article class="rounded-lg bg-white p-4 shadow">
-                <h3 class="text-lg font-semibold">{{ $post->title }}</h3>
-                <p class="mt-2 text-gray-700 whitespace-pre-line">{{ $post->body }}</p>
-                <small class="mt-3 block text-sm text-gray-500">
+            <article id="post-{{ $post->id }}" class="rounded-lg bg-white p-4 shadow">
+                <h3 id="post-title-{{ $post->id }}" class="text-lg font-semibold">
+                    {{ $post->title }}
+                </h3>
+
+                <p id="post-body-{{ $post->id }}" class="mt-2 text-gray-700 whitespace-pre-line">
+                    {{ $post->body }}
+                </p>
+
+                <small id="post-author-{{ $post->id }}" class="mt-3 block text-sm text-gray-500">
                     {{ $post->author->name ?? $post->user->name ?? 'Неизвестный автор' }}
                 </small>
             </article>
@@ -37,6 +43,7 @@
 <script>
 const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
 const wsUrl = `${wsProtocol}//api.{{ config('app.fastapi_domain') }}/ws`
+
 function connect() {
     const ws = new WebSocket(wsUrl)
 
@@ -44,8 +51,13 @@ function connect() {
 
     ws.onmessage = (e) => {
         const msg = JSON.parse(e.data)
+
         if (msg.type === 'new_post') {
             prependPost(msg.post)
+        } else if (msg.type === 'update_post') {
+            updatePost(msg.post)
+        } else if (msg.type === 'delete_post') {
+            removePost(msg.post_id)
         }
     }
 
@@ -58,16 +70,36 @@ function prependPost(post) {
     const feed = document.getElementById('posts-feed')
     if (!feed) return
 
+    if (document.getElementById(`post-${post.id}`)) return
+
     const el = document.createElement('article')
+    el.id = `post-${post.id}`
     el.className = 'rounded-lg bg-white p-4 shadow'
 
     el.innerHTML = `
-        <h3 class="text-lg font-semibold">${escapeHtml(post.title)}</h3>
-        <p class="mt-2 text-gray-700 whitespace-pre-line">${escapeHtml(post.body)}</p>
-        <small class="mt-3 block text-sm text-gray-500">${escapeHtml(post.author ?? 'Неизвестный автор')}</small>
+        <h3 id="post-title-${post.id}" class="text-lg font-semibold">${escapeHtml(post.title)}</h3>
+        <p id="post-body-${post.id}" class="mt-2 text-gray-700 whitespace-pre-line">${escapeHtml(post.body)}</p>
+        <small id="post-author-${post.id}" class="mt-3 block text-sm text-gray-500">${escapeHtml(post.author ?? 'Неизвестный автор')}</small>
     `
 
     feed.prepend(el)
+}
+
+function updatePost(post) {
+    const titleEl = document.getElementById(`post-title-${post.id}`)
+    const bodyEl = document.getElementById(`post-body-${post.id}`)
+    const authorEl = document.getElementById(`post-author-${post.id}`)
+
+    if (titleEl) titleEl.textContent = post.title ?? ''
+    if (bodyEl) bodyEl.textContent = post.body ?? ''
+    if (authorEl) authorEl.textContent = post.author ?? 'Неизвестный автор'
+}
+
+function removePost(postId) {
+    const el = document.getElementById(`post-${postId}`)
+    if (el) {
+        el.remove()
+    }
 }
 
 function escapeHtml(str) {

@@ -72,18 +72,31 @@ class PostController extends Controller
         ]);
 
         $post->update($data);
-
+        $post->load('author');
+       
+        Redis::publish('update_post', json_encode([
+            'id' => $post->id,
+            'title' => $post->title,
+            'body' => $post->body,
+            'author' => $post->author->name,
+            'created_at' => $post->created_at->toISOString(),
+       ]));
+       
         return redirect()->route('posts.show', $post)
             ->with('success', 'Пост обновлён');
     }
-
-    public function destroy(Post $post)
+    
+    public function destroy(Post $post) 
     {
         Gate::authorize('delete', $post);
 
+        $postId = $post->id;
         $post->delete();
 
-        return redirect()->route('posts.index')
-            ->with('success', 'Пост удалён');
+        Redis::publish('delete_post', json_encode([
+            'id' => $postId,
+        ]));
+
+        return redirect()->route('posts.index')->with('success', 'Пост удалён');
     }
 }

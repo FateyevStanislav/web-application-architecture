@@ -29,6 +29,7 @@ class RefreshTokenCookie
                     true,
                     true,
                     false,
+                    false,
                     'Strict'
                 ));
             }

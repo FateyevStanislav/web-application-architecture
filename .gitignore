@@ -1,0 +1,64 @@
+# --- Secrets / env ---
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# --- Git / editor / OS ---
+.git
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Root runtime/storage ---
+storage/logs/*
+!storage/logs/.gitignore
+storage/framework/cache/*
+!storage/framework/cache/.gitignore
+storage/framework/sessions/*
+!storage/framework/sessions/.gitignore
+storage/framework/views/*
+!storage/framework/views/.gitignore
+
+# --- Laravel project ---
+boardy-laravel/vendor/
+boardy-laravel/node_modules/
+boardy-laravel/public/hot
+boardy-laravel/public/storage
+boardy-laravel/storage/*.key
+boardy-laravel/storage/logs/*
+!boardy-laravel/storage/logs/.gitignore
+boardy-laravel/storage/framework/cache/*
+!boardy-laravel/storage/framework/cache/.gitignore
+boardy-laravel/storage/framework/sessions/*
+!boardy-laravel/storage/framework/sessions/.gitignore
+boardy-laravel/storage/framework/views/*
+!boardy-laravel/storage/framework/views/.gitignore
+boardy-laravel/bootstrap/cache/*.php
+!boardy-laravel/bootstrap/cache/.gitignore
+boardy-laravel/.phpunit.result.cache
+boardy-laravel/auth.json
+boardy-laravel/token.json
+
+# --- Python / FastAPI project ---
+boardy-api/__pycache__/
+boardy-api/*.py[cod]
+boardy-api/.pytest_cache/
+boardy-api/.mypy_cache/
+boardy-api/.ruff_cache/
+boardy-api/.coverage
+boardy-api/htmlcov/
+boardy-api/venv/
+boardy-api/.venv/
+
+# --- Optional local docker overrides ---
+docker-compose.override.yml

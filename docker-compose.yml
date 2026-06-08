@@ -1,0 +1,84 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./boardy-laravel:/var/www/html
+    depends_on:
+      - laravel
+      - fastapi
+    networks:
+      - boardynet
+
+  laravel:
+    build: ./boardy-laravel
+    volumes:
+      - ./boardy-laravel:/var/www/html
+      - laravelstorage:/var/www/html/storage
+    env_file:
+      - ./boardy-laravel/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - boardynet
+
+  fastapi:
+    build: ./boardy-api
+    volumes:
+      - laravelstorage:/laravel-storage:ro
+      - ./boardy-api:/app
+    environment:
+      DBHOST: mysql
+      DBUSER: ${DB_USER}
+      DBPASSWORD: ${DB_PASSWORD}
+      REDISHOST: redis
+      OAUTH_PUBLIC_KEY_PATH: /laravel-storage/oauth-public.key
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - boardynet
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      retries: 10
+    networks:
+      - boardynet
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+    networks:
+      - boardynet
+
+volumes:
+  mysqldata:
+  redisdata:
+  laravelstorage:
+
+networks:
+  boardynet:
+    driver: bridge
